@@ -53,7 +53,7 @@ if PG:
     IntegrityError = psycopg.IntegrityError
 else:
     IntegrityError = sqlite3.IntegrityError
-ON_VERCEL = bool(os.environ.get("VERCEL"))
+ON_VERCEL = any(os.environ.get(k) for k in ("VERCEL", "VERCEL_ENV", "VERCEL_URL", "AWS_LAMBDA_FUNCTION_NAME"))
 if ON_VERCEL and not (os.environ.get("SECRET_KEY") and PG):
     raise RuntimeError("Vercel'de SECRET_KEY ve DATABASE_URL (Supabase bağlantı adresi) ortam değişkenleri zorunludur.")
 
