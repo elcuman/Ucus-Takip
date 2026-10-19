@@ -448,7 +448,8 @@ def login():
             nxt = request.args.get("next", "")
             return redirect(nxt if nxt.startswith("/") and not nxt.startswith("//") else url_for("dashboard"))
         flash("Kullanıcı adı ya da şifre hatalı.", "error")
-    return render_template("login.html")
+    # Örnek şifreler giriş sayfasında yalnızca DEMO_HINT=1 ise gösterilir (yerelde varsayılan açık, canlıda kapalı)
+    return render_template("login.html", demo_hint=os.environ.get("DEMO_HINT", "0" if ON_VERCEL else "1") == "1")
 
 
 @app.route("/logout", methods=["POST"])
@@ -965,7 +966,7 @@ TEMPLATES["login.html"] = r"""{% extends "base.html" %}{% block title %}Giriş{%
 <label>Kullanıcı adı<input name="username" autocomplete="username" required autofocus></label><br>
 <label>Şifre<input type="password" name="password" autocomplete="current-password" required></label><br>
 <button class="btn" style="width:100%;justify-content:center">Giriş yap</button></form>
-<p class="muted" style="font-size:12px;margin-bottom:0">Örnek hesaplar: yonetici / Yonetici123! · koordinator / Koordinator123! · pilot.deniz / Pilot123!</p>
+{% if demo_hint %}<p class="muted" style="font-size:12px;margin-bottom:0">Örnek hesaplar: yonetici / Yonetici123! · koordinator / Koordinator123! · pilot.deniz / Pilot123!</p>{% endif %}
 </div>{% endblock %}"""
 
 TEMPLATES["password.html"] = r"""{% extends "base.html" %}{% block body %}<h1>Şifre değiştir</h1>
