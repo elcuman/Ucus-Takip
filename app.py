@@ -116,7 +116,17 @@ CREATE TABLE IF NOT EXISTS audit (
 def connect():
     if PG:
         # prepare_threshold=None: Supabase havuzlayıcısı (port 6543, transaction modu) hazır sorguları desteklemez
-        return psycopg.connect(DATABASE_URL, row_factory=dict_row, prepare_threshold=None)
+        global DATABASE_URL
+        try:
+            return psycopg.connect(DATABASE_URL, row_factory=dict_row, prepare_threshold=None, connect_timeout=10)
+        except psycopg.OperationalError as e:
+            # Supabase havuzlayıcısı projeye göre aws-0 ya da aws-1 kümesindedir; yanlışsa "Tenant or user not found" döner
+            alt = DATABASE_URL.replace("aws-1-", "aws-0-") if "aws-1-" in DATABASE_URL else DATABASE_URL.replace("aws-0-", "aws-1-")
+            if "tenant" not in str(e).lower() or alt == DATABASE_URL:
+                raise
+            conn = psycopg.connect(alt, row_factory=dict_row, prepare_threshold=None, connect_timeout=10)
+            DATABASE_URL = alt
+            return conn
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
@@ -175,10 +185,13 @@ def log(action, detail=""):
 def init_db():
     conn = connect()
     try:
-        schema = SCHEMA.replace("INTEGER PRIMARY KEY", "SERIAL PRIMARY KEY") if PG else SCHEMA
-        for stmt in [x.strip() for x in schema.split(";") if x.strip()]:
-            conn.execute(stmt)
-        conn.commit()
+        # Tablolar varsa kurulum atlanır (canlıda uygulama, tablo oluşturma yetkisi olmayan kısıtlı bir kullanıcıyla bağlanır)
+        exists = fetch(conn, "SELECT to_regclass('users') AS t")[0]["t"] if PG else None
+        if not exists:
+            schema = SCHEMA.replace("INTEGER PRIMARY KEY", "SERIAL PRIMARY KEY") if PG else SCHEMA
+            for stmt in [x.strip() for x in schema.split(";") if x.strip()]:
+                conn.execute(stmt)
+            conn.commit()
         if fetch(conn, "SELECT COUNT(*) AS n FROM users")[0]["n"] == 0 and os.environ.get("SEED_DEMO", "1") == "1":
             try:
                 seed(conn)
