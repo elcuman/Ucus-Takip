@@ -11,7 +11,7 @@ EN = {
     # menü ve genel
     "Genel Bakış": "Overview", "Uçuşlar": "Flights", "Uçuşlarım": "My flights", "Uçuş kaydı": "Flight log",
     "Onaylar": "Approvals", "Filo": "Fleet", "Bakım": "Maintenance", "Kullanıcılar": "Users", "Geçmiş": "History",
-    "Çıkış": "Sign out", "Private Aviation": "Private Aviation", "Uçuş Kayıt ve Takip": "Flight Log & Tracking", "Sivil Havacılık": "Civil Aviation", "Giriş": "Sign in",
+    "Çıkış": "Sign out", "Private Aviation": "Private Aviation", "Uçuş Kayıt ve Takip": "Flight Log & Tracking", "Canlı uçuş": "Live flight", "Tahmini iniş": "ETA", "Sıradaki kalkış": "Next departure", "Sivil Havacılık": "Civil Aviation", "Giriş": "Sign in",
     "Pilot": "Pilot", "Koordinatör": "Coordinator", "Yönetici": "Administrator",
     # giriş
     "Gökyüzünde": "A", "zamansız": "timeless", "bir ayrıcalık.": "privilege in the skies.",
