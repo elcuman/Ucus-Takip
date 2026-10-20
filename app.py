@@ -914,7 +914,123 @@ TEMPLATES = {}
 
 TEMPLATES["base.html"] = '<!doctype html>\n<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">\n<title>{% block title %}{{ COMPANY }}{% endblock %} · Private Aviation</title>\n<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">\n<style>\n:root{color-scheme:dark;--ink:#0A0B0D;--night:#111214;--panel:#141619;--panel2:#1A1C20;--line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.06);--gold:#A3AAB5;--gold2:#FFFFFF;--ivory:#FFFFFF;--text:#D5D8DD;--muted:#868E9A;--ok:#7FD3A6;--busy:#9CC3F5;--warn:#F0B46A;--bad:#EF7E72;--r:8px;--serif:"Montserrat","Helvetica Neue",Arial,sans-serif;--sans:"Montserrat","Helvetica Neue",Arial,sans-serif}\n*{box-sizing:border-box}html,body{overflow-x:hidden}\nbody{margin:0;font:15px/1.55 var(--sans);font-weight:400;background:var(--ink);color:var(--text);\nbackground-image:radial-gradient(1100px 620px at 50% -12%,rgba(255,255,255,.07),transparent 65%);background-attachment:fixed}\na{color:var(--gold2);text-decoration:none}a:hover{color:#fff}\nheader.top{position:sticky;top:0;z-index:20;background:rgba(10,11,13,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:0 32px}\n.top-in{max-width:1216px;margin:0 auto;display:flex;align-items:center;gap:28px;min-height:72px;flex-wrap:wrap}\n.brand{display:flex;align-items:center;gap:12px;color:var(--ivory)}.brand .mark{width:34px;height:34px;flex:none}\n.brand b{display:block;font:600 15px/1 var(--serif);letter-spacing:.26em;text-transform:uppercase}.brand small{display:block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-top:4px}\nnav.main{display:flex;gap:0;flex-wrap:nowrap;flex:1;min-width:0}\nnav.main a{position:relative;color:var(--muted);padding:10px 10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}\nnav.main a:hover{color:var(--ivory)}nav.main a.on{color:var(--gold2)}\nnav.main a.on::after{content:"";position:absolute;left:10px;right:10px;bottom:2px;height:1px;background:#fff}@media (max-width:1380px){.who>span{display:none}}\nnav.main .badge{background:#fff;color:var(--ink);border-radius:10px;padding:0 6px;font-size:11px;margin-left:5px;letter-spacing:0}\n.who{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)}.who a{color:var(--ivory)}.who form{margin:0}\n.who button{background:rgba(255,255,255,.05);border:1px solid var(--line);color:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;font:inherit;letter-spacing:.06em}\n.who button:hover{border-color:var(--gold)}\nmain{max-width:1280px;margin:0 auto;padding:40px 32px 80px}\nh1{font:600 36px/1.15 var(--serif);color:var(--ivory);margin:0 0 8px;letter-spacing:.02em}h2{font:600 22px/1.25 var(--serif);color:var(--ivory);margin:36px 0 14px}\n.eyebrow{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold)}\n.muted{color:var(--muted)}.sub{display:block;font-size:12px;color:var(--muted);font-weight:400}\n.sheet{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:var(--r);padding:22px}\n.tbl{overflow-x:auto;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:var(--r)}\ntable{width:100%;border-collapse:collapse}th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line2);vertical-align:top;font-size:14px}\nth{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600;background:rgba(255,255,255,.04)}\ntr:last-child td{border-bottom:0}tbody tr:hover td,table tr:hover td{background:rgba(255,255,255,.025)}\n.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #fff;background:#fff;color:#0A0B0D;border-radius:6px;padding:11px 20px;font:600 12px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}\n.btn:hover{background:#E6E8EB;color:#0A0B0D}.btn.ghost{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14);color:#fff}.btn.ghost:hover{background:rgba(255,255,255,.10)}\n.btn.danger{background:none;border-color:rgba(227,133,122,.6);color:var(--bad)}.btn.small{padding:6px 12px;font-size:11px}\n.st{font-weight:500;font-size:12px;letter-spacing:.06em;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;text-transform:uppercase}\n.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}\n.st.ok,.st.Tamamlandı{color:var(--ok)}.st.busy,.st.Uçuşta,.st.Planlı{color:var(--busy)}.st.warn,.st.Onay{color:var(--warn)}.st.bad,.st.İptal,.st.Reddedildi{color:var(--bad)}\nform.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}\nlabel{display:block;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}\ninput,select,textarea{width:100%;margin-top:8px;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:rgba(255,255,255,.04);color:var(--ivory);font:15px var(--sans);letter-spacing:0;text-transform:none}\ninput:focus,select:focus,textarea:focus{outline:none;border-color:rgba(255,255,255,.5);box-shadow:0 0 0 3px rgba(255,255,255,.15)}\ninput[type=checkbox]{width:auto;accent-color:#fff}input::-webkit-calendar-picker-indicator{filter:invert(.8)}\ntextarea{min-height:80px}.full{grid-column:1/-1}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}\n.flash{padding:12px 16px;border-radius:12px;margin-bottom:12px;border:1px solid rgba(140,197,164,.35);background:rgba(140,197,164,.08);color:var(--ivory)}.flash.error{border-color:rgba(227,133,122,.4);background:rgba(227,133,122,.08)}\ndl.kv{display:grid;grid-template-columns:190px 1fr;gap:12px 20px;margin:0}dl.kv dt{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}dl.kv dd{margin:0;color:var(--ivory)}\n.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}\ndetails summary{cursor:pointer}\n.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}\n@media (max-width:760px){header.top{padding:0 16px}.top-in{gap:8px;padding:10px 0;min-height:0}nav.main{order:3;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}\nnav.main a{white-space:nowrap;padding:8px 10px;font-size:12px}.who{margin-left:auto}.who>span{display:none}td{white-space:nowrap}\nmain{padding:24px 16px 64px}dl.kv{grid-template-columns:1fr}dl.kv dt{margin-top:8px}h1{font-size:30px}h2{font-size:22px}.hide-m{display:none}}\n</style>{% block head %}{% endblock %}</head><body>\n{% if g.user %}<header class="top"><div class="top-in">\n<a class="brand" href="{{ url_for(\'dashboard\') }}"><svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="19" stroke="#A3AAB5" stroke-width="1"/>\n<path d="M9 23 L31 15 M14 23 L22 20.2 L19 28" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>{{ COMPANY }}</b><small>Private Aviation</small></span></a>\n<nav class="main">{% set ep = request.endpoint %}\n<a href="{{ url_for(\'dashboard\') }}" class="{{ \'on\' if ep==\'dashboard\' }}">Genel Bakış</a>\n<a href="{{ url_for(\'flights\') }}" class="{{ \'on\' if ep in (\'flights\',\'flight_detail\',\'flight_edit\') }}">{{ \'Uçuşlarım\' if g.user.role==\'pilot\' else \'Uçuşlar\' }}</a>\n<a href="{{ url_for(\'flight_new\') }}" class="{{ \'on\' if ep==\'flight_new\' }}">Uçuş kaydı</a>\n{% if g.user.role != \'pilot\' %}<a href="{{ url_for(\'approvals\') }}" class="{{ \'on\' if ep==\'approvals\' }}">Onaylar{% if pending_count() %}<span class="badge">{{ pending_count() }}</span>{% endif %}</a>{% endif %}\n<a href="{{ url_for(\'fleet\') }}" class="{{ \'on\' if ep==\'fleet\' }}">Filo</a>\n<a href="{{ url_for(\'maintenance\') }}" class="{{ \'on\' if ep==\'maintenance\' }}">Bakım</a>\n{% if g.user.role==\'yonetici\' %}<a href="{{ url_for(\'users\') }}" class="{{ \'on\' if ep==\'users\' }}">Kullanıcılar</a><a href="{{ url_for(\'audit\') }}" class="{{ \'on\' if ep==\'audit\' }}">Geçmiş</a>{% endif %}\n</nav>\n<div class="who"><span><a href="{{ url_for(\'password\') }}">{{ g.user.full_name }}</a> · {{ ROLES[g.user.role] }}</span>\n<form method="post" action="{{ url_for(\'logout\') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button>Çıkış</button></form></div>\n</div></header>{% endif %}\n{% block full %}<main>{% for cat, m in get_flashed_messages(with_categories=true) %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}\n{% block body %}{% endblock %}</main>{% endblock %}</body></html>'
 
-TEMPLATES["login.html"] = '{% extends "base.html" %}{% block title %}Giriş{% endblock %}{% block head %}<style>\n.auth{min-height:100vh;display:grid;grid-template-columns:1.25fr 1fr}\n.auth-art{position:relative;overflow:hidden;padding:56px 64px;display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid var(--line);\nbackground:radial-gradient(620px 420px at 45% 48%,rgba(255,255,255,.16),transparent 70%),#0A0B0D}\n.auth-art::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1px);background-size:3px 3px;opacity:.035}\n.auth-art .brand{position:relative}.auth-art .jet{position:relative;width:min(640px,100%);height:auto;margin:40px 0}\n.auth-art h2{position:relative;font:600 44px/1.15 var(--serif);margin:0 0 18px;max-width:600px;letter-spacing:.01em}.auth-art h2 em{font-style:normal;font-weight:300;color:rgba(255,255,255,.55)}\n.auth-art p{position:relative;max-width:460px;color:var(--muted);margin:0}\n.auth-foot{position:relative;display:flex;gap:28px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}\n.auth-form{display:flex;align-items:center;justify-content:center;padding:48px 32px}\n.auth-card{width:100%;max-width:400px}.auth-card h1{font-size:34px;margin:10px 0 6px}.auth-card form{margin-top:30px;display:grid;gap:20px}\n.auth-card .btn{width:100%;padding:14px}\n.demo{margin-top:28px;padding:16px 18px;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:8px;font-size:13px;color:var(--muted)}\n.demo b{display:block;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:500}\n.demo table td{padding:4px 0;border:0;font-size:13px}.demo code{color:#fff;font-family:inherit}\n@media (max-width:900px){.auth{grid-template-columns:1fr}.auth-art{padding:28px 20px 24px;border-right:0;border-bottom:1px solid var(--line)}.auth-art h2{font-size:34px}.auth-art .jet{margin:18px 0}.auth-foot{display:none}.auth-form{padding:28px 20px 48px}}\n</style>{% endblock %}\n{% block full %}<div class="auth">\n<section class="auth-art"><a class="brand" href="#"><svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="19" stroke="#A3AAB5" stroke-width="1"/>\n<path d="M9 23 L31 15 M14 23 L22 20.2 L19 28" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>{{ COMPANY }}</b><small>Private Aviation</small></span></a>\n<div><svg class="jet" viewBox="0 0 640 170" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">\n<defs><linearGradient id="jg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#A3AAB5" stop-opacity="0"/><stop offset=".35" stop-color="#A3AAB5" stop-opacity=".9"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient></defs>\n<path d="M22 98 C70 84 150 78 270 76 L488 74 C540 74 584 80 610 90 C616 93 616 97 610 99 C584 106 540 110 488 110 L132 112 C86 112 46 106 22 98 Z" stroke="url(#jg)" stroke-width="1.6"/>\n<path d="M70 92 L36 30 L78 30 L132 84" stroke="url(#jg)" stroke-width="1.6"/>\n<path d="M30 34 L104 38 L86 44" stroke="url(#jg)" stroke-width="1.4"/>\n<path d="M262 104 L352 152 L388 152 L338 104" stroke="url(#jg)" stroke-width="1.6"/>\n<rect x="118" y="62" width="92" height="20" rx="10" stroke="url(#jg)" stroke-width="1.4"/>\n<path d="M560 82 C572 82 588 85 598 89" stroke="#FFFFFF" stroke-width="1.4"/>\n<g fill="#FFFFFF" opacity=".85"><circle cx="316" cy="88" r="3"/><circle cx="340" cy="88" r="3"/><circle cx="364" cy="88" r="3"/><circle cx="388" cy="88" r="3"/><circle cx="412" cy="88" r="3"/><circle cx="436" cy="88" r="3"/><circle cx="460" cy="88" r="3"/></g>\n<path d="M0 132 L250 132" stroke="#A3AAB5" stroke-opacity=".35" stroke-width="1"/><path d="M60 142 L210 142" stroke="#A3AAB5" stroke-opacity=".2" stroke-width="1"/>\n</svg><h2>Gökyüzünde <em>zamansız</em> bir ayrıcalık.</h2>\n<p>Filo, uçuş programı ve bakım takibi tek ekranda. Ekibinizin her uçuşu, kalkıştan inişe kadar kayıt altında.</p></div>\n<div class="auth-foot"><span>İstanbul</span><span>Cenevre</span><span>Paris</span><span>Londra</span></div></section>\n<section class="auth-form"><div class="auth-card">\n{% for cat, m in get_flashed_messages(with_categories=true) %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}\n<div class="eyebrow">Ekip girişi</div><h1>Hoş geldiniz</h1><p class="muted" style="margin:0">Uçuş Kayıt ve Takip Sistemi</p>\n<form method="post"><input type="hidden" name="csrf" value="{{ csrf_token() }}">\n<label>Kullanıcı adı<input name="username" autocomplete="username" required autofocus></label>\n<label>Şifre<input type="password" name="password" autocomplete="current-password" required></label>\n<button class="btn">Giriş yap</button></form>\n{% if demo_hint %}<div class="demo"><b>Deneme hesapları</b><table>\n<tr><td>Yönetici</td><td><code>yonetici</code></td><td><code>Yonetici123!</code></td></tr>\n<tr><td>Koordinatör</td><td><code>koordinator</code></td><td><code>Koordinator123!</code></td></tr>\n<tr><td>Pilot</td><td><code>pilot.deniz</code></td><td><code>Pilot123!</code></td></tr></table></div>{% endif %}\n</div></section></div>{% endblock %}'
+TEMPLATES["login.html"] = r"""{% extends "base.html" %}{% block title %}{{ T("Giriş") }}{% endblock %}{% block head %}<style>
+.auth{position:relative;min-height:100vh;overflow:hidden;background:#0A0B0D;color:#fff;isolation:isolate}
+.auth::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(900px 560px at 50% 45%,rgba(255,255,255,.07),transparent 70%)}
+.paths{position:absolute;inset:0;z-index:0;pointer-events:none;color:#fff;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 86%,transparent)}
+.paths canvas{width:100%;height:100%;display:block;opacity:0;transition:opacity .6s ease-out}
+.auth-top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:32px 56px}
+.auth-main{position:relative;z-index:2;min-height:calc(100vh - 200px);display:grid;grid-template-columns:1.15fr minmax(340px,420px);gap:64px;align-items:center;max-width:1280px;margin:0 auto;padding:0 56px 40px}
+.auth-copy h2{font:600 56px/1.08 var(--serif);letter-spacing:-.01em;margin:16px 0 20px;max-width:620px}
+.auth-copy h2 em{font-style:normal;font-weight:300;color:rgba(255,255,255,.55)}
+.auth-copy p{max-width:460px;color:rgba(255,255,255,.62);font-size:16px;margin:0}
+.auth-card{background:rgba(14,15,18,.62);backdrop-filter:blur(18px) saturate(120%);-webkit-backdrop-filter:blur(18px) saturate(120%);
+  border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:36px 32px;box-shadow:0 30px 80px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06)}
+.auth-card h1{font-size:30px;margin:10px 0 4px}.auth-card form{margin-top:26px;display:grid;gap:18px}
+.auth-card .btn{width:100%;padding:14px;margin-top:4px}
+.auth-card input{background:rgba(255,255,255,.04)}
+.demo{margin-top:22px;padding:14px 16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);border-radius:10px;font-size:13px;color:var(--muted)}
+.demo b{display:block;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;font-weight:600}
+.demo table td{padding:3px 0;border:0;font-size:13px;background:none!important}.demo code{color:#fff;font-family:inherit}
+.auth-foot{position:relative;z-index:2;display:flex;justify-content:space-between;gap:24px;padding:0 56px 32px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.auth-foot span+span{margin-left:28px}
+/* giriş animasyonu: içerik sırayla, yumuşak bir yükselişle gelir */
+.rise{opacity:0;transform:translateY(14px);animation:rise .8s cubic-bezier(.22,1,.36,1) forwards;animation-delay:calc(var(--i,0) * 90ms + 250ms)}
+@keyframes rise{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rise{animation:none;opacity:1;transform:none}.paths canvas{transition:none}}
+@media (max-width:960px){.auth-main{grid-template-columns:1fr;gap:32px;padding:8px 20px 32px;min-height:0}.auth-top{padding:22px 20px}
+  .auth-copy h2{font-size:36px}.auth-foot{padding:0 20px 24px;flex-direction:column;gap:8px}.auth-card{padding:28px 22px}}
+</style>{% endblock %}
+{% block full %}<div class="auth" id="auth">
+<!-- Akan çizgiler: Kokonut UI "Background Paths" (MIT, kokonutui.com · 21st.dev) bileşeninin düz JavaScript uyarlaması -->
+<div class="paths" aria-hidden="true"><canvas id="paths"></canvas></div>
+<header class="auth-top rise" style="--i:0"><a class="brand" href="#"><svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="19" stroke="#A3AAB5" stroke-width="1"/>\n<path d="M9 23 L31 15 M14 23 L22 20.2 L19 28" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>{{ COMPANY }}</b><small>Private Aviation</small></span></a>
+<a class="lang" href="{{ lang_url() }}" title="Türkçe / English">{{ "EN" if LANG == "tr" else "TR" }}</a></header>
+<main class="auth-main">
+<section class="auth-copy"><div class="eyebrow rise" style="--i:1">Private Aviation</div>
+<h2 class="rise" style="--i:2">Gökyüzünde <em>zamansız</em> bir ayrıcalık.</h2>
+<p class="rise" style="--i:3">Filo, uçuş programı ve bakım takibi tek ekranda. Ekibinizin her uçuşu, kalkıştan inişe kadar kayıt altında.</p></section>
+<section class="auth-card rise" style="--i:3">
+{% for cat, m in get_flashed_messages(with_categories=true) %}<div class="flash {{ cat }}">{{ T(m) }}</div>{% endfor %}
+<div class="eyebrow">Ekip girişi</div><h1>Hoş geldiniz</h1><p class="muted" style="margin:0">Uçuş Kayıt ve Takip Sistemi</p>
+<form method="post"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<label>Kullanıcı adı<input name="username" autocomplete="username" required autofocus></label>
+<label>Şifre<input type="password" name="password" autocomplete="current-password" required></label>
+<button class="btn">Giriş yap</button></form>
+{% if demo_hint %}<div class="demo"><b>Deneme hesapları</b><table>
+<tr><td>Yönetici</td><td><code>yonetici</code></td><td><code>Yonetici123!</code></td></tr>
+<tr><td>Koordinatör</td><td><code>koordinator</code></td><td><code>Koordinator123!</code></td></tr>
+<tr><td>Pilot</td><td><code>pilot.deniz</code></td><td><code>Pilot123!</code></td></tr></table></div>{% endif %}
+</section></main>
+<footer class="auth-foot rise" style="--i:4"><div><span>İstanbul</span><span>Cenevre</span><span>Paris</span><span>Londra</span></div><div>© {{ COMPANY }}</div></footer>
+</div>
+<script>
+/* Background Paths — Kokonut UI (@dorianbaffier), MIT License, https://kokonutui.com · düz JavaScript uyarlaması */
+(function () {
+  var root = document.getElementById('auth'), canvas = document.getElementById('paths'), ctx = canvas && canvas.getContext('2d');
+  if (!ctx) return;
+  var SAMPLES = 64, OVERSCAN = 0.06, DRAW_MS = 1600, STAGGER = 40, PART_R = 150, PART_PUSH = 56;
+  var LAYERS = [{w: 1, o: .16, ph: .6, pace: .7, part: .45}, {w: 1.25, o: .26, ph: .3, pace: .85, part: .75}, {w: 1.5, o: .42, ph: 0, pace: 1, part: 1}];
+  var COUNT = 42, SPREAD = 1, ANGLE = -8, SPEED = 0.8;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var shape = {slope: Math.tan(ANGLE * Math.PI / 180), interactive: !reduce};
+  var per = Math.max(1, Math.round(COUNT / LAYERS.length));
+  var f = {w: 0, h: 0, t: 40, drawn: new Array(per * LAYERS.length).fill(reduce ? 1 : 0), p: {x: 0, y: 0, a: 0, on: false}};
+  var color = '#fff', start = 0, last = 0, raf = 0, visible = true;
+  var xs = new Float32Array(SAMPLES + 1), ys = new Float32Array(SAMPLES + 1);
+  function lineY(s, u, L, band) {
+    var t = f.t * L.pace, x = u * f.w;
+    var center = f.h * .5 + shape.slope * (x - f.w / 2) + band * .1 * Math.sin(Math.PI * 2 * (.75 * u + .1) + L.ph + t * .35);
+    var turn = .22 + .09 * Math.sin(t * .21 + L.ph), breathe = .3 * Math.sin(t * .5 + s * 4 + L.ph);
+    return center + s * SPREAD * band * Math.cos(Math.PI * (u - turn) + s * (.6 + breathe) + L.ph);
+  }
+  function part(x, y, k) {
+    if (f.p.a < .001) return y;
+    var dx = x - f.p.x, dy = y - f.p.y, fall = Math.exp(-(dx * dx + dy * dy) / (PART_R * PART_R));
+    return y + dy / (Math.abs(dy) + 24) * fall * PART_PUSH * k * f.p.a;
+  }
+  function paint() {
+    ctx.clearRect(0, 0, f.w, f.h); ctx.strokeStyle = color; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    var band = Math.min(f.h, f.w * 1.1);
+    LAYERS.forEach(function (L, li) {
+      ctx.lineWidth = L.w;
+      for (var i = 0; i < per; i++) {
+        var d = f.drawn[li * per + i]; if (d <= 0) continue;
+        var s = per === 1 ? 0 : i / (per - 1) - .5, end = Math.max(1, Math.ceil(SAMPLES * d));
+        for (var k = 0; k <= end; k++) { var u = -OVERSCAN + k / SAMPLES * (1 + OVERSCAN * 2), x = u * f.w, y = lineY(s, u, L, band); xs[k] = x; ys[k] = shape.interactive ? part(x, y, L.part) : y; }
+        ctx.globalAlpha = L.o * (.45 + .55 * (1 - Math.abs(s) * 2));
+        ctx.beginPath(); ctx.moveTo(xs[0], ys[0]);
+        for (k = 1; k < end; k++) ctx.quadraticCurveTo(xs[k], ys[k], (xs[k] + xs[k + 1]) / 2, (ys[k] + ys[k + 1]) / 2);
+        ctx.lineTo(xs[end], ys[end]); ctx.stroke();
+      }
+    });
+    ctx.globalAlpha = 1;
+  }
+  function resize() {
+    var r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    f.w = r.width; f.h = r.height; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); paint();
+  }
+  var ease = function (t) { return 1 - Math.pow(1 - t, 3); };
+  function loop(now) {
+    raf = 0; if (!start) { start = now; last = now; }
+    var dt = Math.min((now - last) / 1000, .05); last = now; f.t += dt * SPEED;
+    var el = now - start;
+    for (var i = 0; i < f.drawn.length; i++) if (f.drawn[i] < 1) f.drawn[i] = ease(Math.min(Math.max((el - (i % per) * STAGGER) / DRAW_MS, 0), 1));
+    f.p.a += ((f.p.on ? 1 : 0) - f.p.a) * .08; paint();
+    if (visible) raf = requestAnimationFrame(loop);
+  }
+  function play() { if (!raf && visible && !reduce) { last = performance.now(); raf = requestAnimationFrame(loop); } }
+  resize(); canvas.style.opacity = '1';
+  new ResizeObserver(resize).observe(canvas);
+  document.addEventListener('visibilitychange', function () { visible = !document.hidden; if (visible) play(); });
+  root.addEventListener('pointermove', function (e) { if (e.pointerType !== 'mouse' || !shape.interactive) return; var r = canvas.getBoundingClientRect(); f.p.x = e.clientX - r.left; f.p.y = e.clientY - r.top; f.p.on = true; play(); });
+  root.addEventListener('pointerleave', function () { f.p.on = false; play(); });
+  play();
+})();
+</script>{% endblock %}
+"""
 
 TEMPLATES["password.html"] = r"""{% extends "base.html" %}{% block body %}<h1>Şifre değiştir</h1>
 <form method="post" class="sheet" style="max-width:420px"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
@@ -1052,8 +1168,7 @@ _DYN = {
     "base.html": [('{{ m }}', '{{ T(m) }}'), ('{{ ROLES[g.user.role] }}', '{{ T(ROLES[g.user.role]) }}'), ('<html lang="tr">', '<html lang="{{ LANG }}">'),
                   ('<form method="post" action="{{ url_for(\'logout\') }}">', '<a class="lang" href="{{ lang_url() }}" title="Türkçe / English">{{ "EN" if LANG == "tr" else "TR" }}</a><form method="post" action="{{ url_for(\'logout\') }}">'),
                   ('.who button:hover{', '.lang{border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-size:12px;letter-spacing:.12em;color:#fff;background:rgba(255,255,255,.05)}.lang:hover{background:rgba(255,255,255,.1);color:#fff}.who button:hover{')],
-    "login.html": [('{% block title %}Giriş{% endblock %}', '{% block title %}{{ T("Giriş") }}{% endblock %}'), ('{{ m }}', '{{ T(m) }}'),
-                   ('<section class="auth-form"><div class="auth-card">', '<section class="auth-form" style="position:relative"><a class="lang" style="position:absolute;top:28px;right:32px" href="{{ lang_url() }}">{{ "EN" if LANG == "tr" else "TR" }}</a><div class="auth-card">')],
+    "login.html": [],   # giriş şablonu T() çağrılarını kendisi içerir
     "dashboard.html": [('{{ MONTHS[now.month-1] }}', '{{ T(MONTHS[now.month-1]) }}'), ('{{ DAYS[now.weekday()] }}', '{{ T(DAYS[now.weekday()]) }}'),
                        ('{{ DAYS[d.weekday()] }}', '{{ T(DAYS[d.weekday()]) }}'), ('{{ lede }}', '{{ T(lede) }}'), ('{{ s.label }}', '{{ T(s.label) }}'),
                        ('{{ s.detail }}', '{{ T(s.detail) }}'), ('{{ tip }}', '{{ T(tip) }}'), ('{{ l }}', '{{ T(l) }}'), ('">{{ st }}<', '">{{ T(st) }}<'), ('{{ f.mission }}', '{{ T(f.mission) }}')],
