@@ -1191,8 +1191,9 @@ TEMPLATES["login.html"] = r"""{% extends "base.html" %}{% block title %}{{ T("Gi
 .paths{position:absolute;inset:0;z-index:0;pointer-events:none;color:#8DC4F4;
   -webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 86%,transparent)}
 .paths canvas{width:100%;height:100%;display:block;opacity:0;transition:opacity .6s ease-out}
+.auth-card{position:relative}.auth-card .lang{position:absolute;top:18px;right:18px}.auth-logo{display:block;height:64px;width:auto;margin:0 0 26px}
 .auth-top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:32px 56px}
-.auth-main{position:relative;z-index:2;min-height:calc(100vh - 200px);display:grid;grid-template-columns:1.15fr minmax(340px,420px);gap:64px;align-items:center;max-width:1280px;margin:0 auto;padding:0 56px 40px}
+.auth-main{position:relative;z-index:2;min-height:calc(100vh - 90px);display:grid;grid-template-columns:1.15fr minmax(340px,420px);gap:64px;align-items:center;max-width:1280px;margin:0 auto;padding:48px 56px 40px}
 .auth-copy h2{font:600 56px/1.08 var(--serif);letter-spacing:-.01em;margin:16px 0 20px;max-width:620px}
 .auth-copy h2 em{font-style:normal;font-weight:600;background:linear-gradient(90deg,#8DC4F4,#479FED);-webkit-background-clip:text;background-clip:text;color:transparent}
 .auth-copy p{max-width:460px;color:rgba(255,255,255,.62);font-size:16px;margin:0}
@@ -1212,9 +1213,9 @@ TEMPLATES["login.html"] = r"""{% extends "base.html" %}{% block title %}{{ T("Gi
 .flyby{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .fb-plane{position:absolute;left:0;top:0;width:26px;height:22px;margin:-11px 0 0 -13px;opacity:0;pointer-events:none;will-change:transform,opacity;filter:drop-shadow(0 0 8px rgba(141,196,244,.9))}
 .fb-plane svg{width:100%;height:100%;display:block}.fb-trail{position:absolute;height:1.5px;border-radius:2px;pointer-events:none;background:linear-gradient(90deg,rgba(141,196,244,0),rgba(216,227,253,.55));transform-origin:100% 50%}
-@media (prefers-reduced-motion:reduce){.fb-plane{display:none}}
+@media (prefers-reduced-motion:reduce),(max-width:960px){.fb-plane,.fb-trail{display:none}}
 @media (prefers-reduced-motion:reduce){.rise{animation:none;opacity:1;transform:none}.paths canvas{transition:none}}
-@media (max-width:960px){.auth-main{grid-template-columns:1fr;gap:32px;padding:8px 20px 32px;min-height:0}.auth-top{padding:22px 20px}
+@media (max-width:960px){.auth-main{grid-template-columns:1fr;gap:32px;padding:36px 20px 32px;min-height:0}.auth-top{padding:22px 20px}
   .auth-copy h2{font-size:36px}.auth-foot{padding:0 20px 24px;flex-direction:column;gap:8px}.auth-card{padding:28px 22px}}
 </style>{% endblock %}
 {% block full %}<div class="auth" id="auth">
@@ -1222,13 +1223,12 @@ TEMPLATES["login.html"] = r"""{% extends "base.html" %}{% block title %}{{ T("Gi
 <div class="paths" aria-hidden="true"><canvas id="paths"></canvas></div>
 <svg class="flyby" aria-hidden="true" viewBox="0 0 1000 600" preserveAspectRatio="none"><path id="fbp" d="M-60 190C150 170 380 110 640 95S960 50 1080 20" fill="none"/></svg>
 <div class="fb-plane" aria-hidden="true"><svg viewBox="-12 -10 24 20"><path d="M11 0C11-1 10-1.4 8-1.4L3-1.4-3-9-5.5-9-2-1.4-7-1.4-9.5-4.5-11-4.5-9.5 0-11 4.5-9.5 4.5-7 1.4-2 1.4-5.5 9-3 9 3 1.4 8 1.4C10 1.4 11 1 11 0Z" fill="#fff"/></svg></div>
-<header class="auth-top rise" style="--i:0"><a class="brand" href="#"><img class="mark" src="{{ LOGO }}" alt="Cevheri"><span><b>{{ COMPANY }}</b><small>Uçuş Kayıt ve Takip</small></span></a>
-<a class="lang" href="{{ lang_url() }}" title="Türkçe / English">{{ "EN" if LANG == "tr" else "TR" }}</a></header>
 <main class="auth-main">
-<section class="auth-copy"><div class="eyebrow rise" style="--i:1">Sivil Havacılık</div>
+<section class="auth-copy"><img class="auth-logo rise" style="--i:0" src="{{ LOGO }}" alt="{{ COMPANY }}"><div class="eyebrow rise" style="--i:1">{{ COMPANY }}</div>
 <h2 class="rise" style="--i:2">Gökyüzünde <em>zamansız</em> bir ayrıcalık.</h2>
 <p class="rise" style="--i:3">Filo, uçuş programı ve bakım takibi tek ekranda. Ekibinizin her uçuşu, kalkıştan inişe kadar kayıt altında.</p></section>
 <section class="auth-card rise" style="--i:3">
+<a class="lang" href="{{ lang_url() }}" title="Türkçe / English">{{ "EN" if LANG == "tr" else "TR" }}</a>
 {% for cat, m in get_flashed_messages(with_categories=true) %}<div class="flash {{ cat }}">{{ T(m) }}</div>{% endfor %}
 <div class="eyebrow">Ekip girişi</div><h1>Hoş geldiniz</h1><p class="muted" style="margin:0">Uçuş Kayıt ve Takip Sistemi</p>
 <form method="post"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
