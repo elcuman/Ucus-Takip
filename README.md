@@ -1,7 +1,7 @@
-# Gökyolu Havacılık · Uçuş Kayıt ve Takip (Flask)
+# Cevheri Sivil Havacılık · Uçuş Kayıt ve Takip (Flask)
 
 Pilot, koordinatör ve yönetici girişli uçuş kayıt sistemi. Tek dosya: `app.py`.
-Yerelde SQLite ile, canlıda Supabase (Postgres) ile çalışır. Tüm şirket, uçak ve kişi adları uydurmadır.
+Yerelde SQLite ile, canlıda Supabase (Postgres) ile çalışır. Örnek verideki uçak, tescil ve kişi adları uydurmadır.
 
 ## Canlıya alma: Supabase + Vercel
 1. **Supabase**: yeni proje açın (bölge: Frankfurt, eu-central-1). Project Settings → Database → Connection string → **Transaction pooler** adresini kopyalayın
