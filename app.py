@@ -112,6 +112,12 @@ CREATE TABLE IF NOT EXISTS day_codes (
   PRIMARY KEY (aircraft_id, day));
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, user_id INTEGER, action TEXT NOT NULL, detail TEXT DEFAULT '', at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS expenses (
+  id INTEGER PRIMARY KEY, flight_id INTEGER REFERENCES flights(id), aircraft_id INTEGER NOT NULL REFERENCES aircraft(id),
+  category TEXT NOT NULL, expense_date TEXT NOT NULL, description TEXT DEFAULT '', vendor TEXT DEFAULT '', location TEXT DEFAULT '',
+  quantity NUMERIC(14,2), unit TEXT DEFAULT '', amount NUMERIC(14,2) NOT NULL, currency TEXT NOT NULL DEFAULT 'EUR',
+  payment_method TEXT DEFAULT '', payment_status TEXT NOT NULL DEFAULT 'odenecek', invoice_no TEXT DEFAULT '', note TEXT DEFAULT '',
+  created_by INTEGER REFERENCES users(id), created_at TEXT NOT NULL);
 """
 
 
@@ -250,6 +256,25 @@ def seed(conn):
     run(conn, "INSERT INTO maintenance(aircraft_id,code,kind,place,start_at,end_at,note,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
                  (ac["TC-GKE"], "M", "200 Saatlik", "Roma / İtalya", f"{d(0)}T10:00", f"{d(4)}T18:00", "Ferry sonrası", us["koordinator"], stamp))
     run(conn, "INSERT INTO day_codes(aircraft_id, day, code) VALUES (?,?,?)", (ac["TC-GKB"], d(-2), "RON"))
+    fl = {r["code"]: r for r in fetch(conn, "SELECT id, code, aircraft_id, flight_date FROM flights")}
+    sample = [  # uçuş kodu, kategori, açıklama, tedarikçi, yer, miktar, birim, tutar, para, ödeme yolu, durum
+        ("GKY101", "fuel", "Jet A-1 ikmali", "Air BP", "LFPB", 4200, "L", 4830.00, "EUR", "card", "odendi"),
+        ("GKY101", "handling", "Yer hizmetleri ve FBO", "Dassault Falcon Service", "LFPB", None, "", 1650.00, "EUR", "transfer", "odenecek"),
+        ("GKY101", "parking", "Apron park, 1 gece", "Paris Le Bourget", "LFPB", 1, "night", 420.00, "EUR", "transfer", "odenecek"),
+        ("GKY101", "hotel", "Ekip konaklaması, 2 oda", "Hôtel Le Bourget", "Paris", 2, "night", 560.00, "EUR", "card", "odendi"),
+        ("GKY101", "landing", "İniş ve yolcu servis ücreti", "ADP", "LFPB", None, "", 980.00, "EUR", "transfer", "yansitilacak"),
+        ("GKY102", "fuel", "Jet A-1 ikmali", "Shell Aviation", "LTFM", 3900, "L", 112500.00, "TRY", "card", "odendi"),
+        ("GKY102", "nav", "Eurocontrol rota ücreti", "Eurocontrol", "", None, "", 1240.00, "EUR", "transfer", "odenecek"),
+        ("GKY103", "fuel", "Jet A-1 ikmali", "Opet Havacılık", "LTBW", 620, "L", 17800.00, "TRY", "card", "odendi"),
+        ("GKY103", "crew", "Ekip harcırahı", "", "Ankara", 2, "day", 3000.00, "TRY", "cash", "odendi"),
+        ("GKY104", "catering", "VIP catering", "Do & Co", "LTFJ", 3, "each", 9600.00, "TRY", "card", "yansitilacak"),
+    ]
+    for code, cat, desc, vendor, loc, qty, unit, amt, cur, pm, st in sample:
+        f = fl.get(code)
+        if f:
+            run(conn, """INSERT INTO expenses(flight_id,aircraft_id,category,expense_date,description,vendor,location,quantity,unit,amount,currency,
+                         payment_method,payment_status,invoice_no,note,created_by,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (f["id"], f["aircraft_id"], cat, f["flight_date"], desc, vendor, loc, qty, unit, amt, cur, pm, st, "", "", us["koordinator"], stamp))
 
 
 # ---------------------------------------------------------------- zaman / durum hesapları
@@ -648,8 +673,11 @@ def can_edit(f):
 def flight_detail(fid):
     f = get_flight_or_404(fid)
     decider = q("SELECT full_name FROM users WHERE id=?", (f["decided_by"],), one=True) if f["decided_by"] else None
+    ps, pa = pilot_scope()
+    exps = expense_query(" AND e.flight_id=?" + ps + " ORDER BY e.expense_date, e.id", [fid] + pa)
+    by_cat, exp_tot = totals_by(exps, lambda r: r["category"])
     return render_template("flight_detail.html", f=f, status=flight_status(f), duration=duration_text(f),
-                           can_edit=can_edit(f), decider=decider)
+                           can_edit=can_edit(f), decider=decider, exps=exps, exp_tot=exp_tot)
 
 
 @app.route("/flights/<int:fid>/edit", methods=["GET", "POST"])
@@ -847,6 +875,241 @@ def fleet():
         cards.append(dict(a=a, s=s, fleet_state=fleet_state, sorties=len(flown), minutes=minutes,
                           location=last["arr"] if last else a["base"], last=last, next=nxt[0] if nxt else None))
     return render_template("fleet.html", cards=cards)
+
+
+# ---------------------------------------------------------------- uçuş masrafları
+EXPENSE_CATS = {"fuel": "Yakıt", "handling": "Yer hizmetleri (handling)", "landing": "İniş / yolcu ücreti", "parking": "Park / hangar",
+                "hotel": "Konaklama", "crew": "Ekip harcırahı", "transport": "Ulaşım / transfer", "catering": "Catering",
+                "fbo": "FBO / VIP salon", "nav": "Navigasyon / overflight", "permits": "İzin / slot", "customs": "Gümrük / pasaport",
+                "deice": "Buzlanma önleme", "line_mx": "Hat bakımı", "cleaning": "Temizlik", "other": "Diğer"}
+CURRENCIES = ["EUR", "USD", "TRY", "GBP", "CHF", "AED"]
+UNITS = {"": "—", "L": "L", "USG": "USG", "kg": "kg", "night": "gece", "day": "gün", "hour": "saat", "each": "adet"}
+PAY_METHODS = {"": "—", "card": "Şirket kartı", "transfer": "Havale / EFT", "cash": "Nakit", "crew": "Ekip ödedi (iade edilecek)", "account": "Cari hesap"}
+PAY_STATUS = {"odenecek": "Ödenecek", "odendi": "Ödendi", "yansitilacak": "Müşteriye yansıtılacak"}
+CAT_UNIT = {"fuel": "L", "hotel": "night", "parking": "night", "crew": "day", "catering": "each"}
+
+
+def parse_amount(v):
+    """'1.234,56' ya da '1234.56' gibi yazılmış tutarı sayıya çevirir; geçersizse None."""
+    t = str(v or "").strip().replace(" ", "")
+    if not t:
+        return None
+    if "," in t and "." in t:
+        t = t.replace(".", "").replace(",", ".") if t.rfind(",") > t.rfind(".") else t.replace(",", "")
+    elif "," in t:
+        t = t.replace(",", ".")
+    try:
+        return round(float(t), 2)
+    except ValueError:
+        return None
+
+
+def money(v, cur=""):
+    """Dile göre biçimlenmiş tutar: TR 12.345,67 · EN 12,345.67"""
+    txt = f"{float(v or 0):,.2f}"
+    if current_lang() == "tr":
+        txt = txt.replace(",", "_").replace(".", ",").replace("_", ".")
+    return f"{txt} {cur}".strip()
+
+
+def expense_flights():
+    """Masraf formundaki uçuş listesi: son 120 gün ve önümüzdeki 30 gün, iptal edilmemiş; pilot yalnızca kendi uçuşlarını görür."""
+    today = now_local().date()
+    extra, args = " AND f.cancelled=0 AND f.approval!='rejected' AND f.flight_date BETWEEN ? AND ?", [(today - timedelta(days=120)).isoformat(), (today + timedelta(days=30)).isoformat()]
+    if g.user["role"] == "pilot":
+        extra += " AND (f.pic_id=? OR f.created_by=?)"; args += [g.user["id"], g.user["id"]]
+    return flight_query(extra + " ORDER BY f.flight_date DESC, f.dep_time DESC", args)
+
+
+def expense_query(extra="", args=()):
+    return q(f"""SELECT e.*, a.reg, a.type, f.code AS flight_code, f.flight_date, f.dep, f.arr, f.pic_id, u.full_name AS creator
+                 FROM expenses e JOIN aircraft a ON a.id=e.aircraft_id LEFT JOIN flights f ON f.id=e.flight_id
+                 LEFT JOIN users u ON u.id=e.created_by WHERE 1=1 {extra}""", args)
+
+
+def pilot_scope():
+    if g.user["role"] != "pilot":
+        return "", []
+    return " AND (f.pic_id=? OR e.created_by=?)", [g.user["id"], g.user["id"]]
+
+
+def can_edit_expense(e):
+    return is_staff() or e["created_by"] == g.user["id"]
+
+
+def totals_by(rows, key):
+    """{anahtar: {para birimi: toplam}} ve para birimi toplamları."""
+    out, cur_tot = {}, {}
+    for r in rows:
+        k = key(r)
+        amt = float(r["amount"])
+        out.setdefault(k, {}).setdefault(r["currency"], 0.0)
+        out[k][r["currency"]] += amt
+        cur_tot[r["currency"]] = cur_tot.get(r["currency"], 0.0) + amt
+    return out, cur_tot
+
+
+def expense_filters():
+    a = request.args
+    extra, args = "", []
+    for col, key in [("e.expense_date>=?", "from"), ("e.expense_date<=?", "to"), ("e.aircraft_id=?", "ac"), ("e.category=?", "cat"),
+                     ("e.flight_id=?", "flight"), ("e.payment_status=?", "status"), ("e.currency=?", "cur")]:
+        if a.get(key):
+            extra += " AND " + col; args.append(a.get(key))
+    ps, pa = pilot_scope()
+    return extra + ps, args + pa
+
+
+@app.route("/expenses")
+@login_required()
+def expenses():
+    extra, args = expense_filters()
+    rows = expense_query(extra + " ORDER BY e.expense_date DESC, e.id DESC", args)
+    by_cat, cur_tot = totals_by(rows, lambda r: r["category"])
+    by_ac, _ = totals_by(rows, lambda r: r["reg"])
+    by_flight, _ = totals_by([r for r in rows if r["flight_id"]], lambda r: (r["flight_id"], r["flight_code"], r["flight_date"], r["reg"], r["dep"], r["arr"]))
+    unpaid, _ = totals_by([r for r in rows if r["payment_status"] == "odenecek"], lambda r: "x")
+    rebill, _ = totals_by([r for r in rows if r["payment_status"] == "yansitilacak"], lambda r: "x")
+    curs = sorted(cur_tot, key=lambda c: CURRENCIES.index(c) if c in CURRENCIES else 99)
+    cat_rows = sorted(by_cat.items(), key=lambda kv: -max(kv[1].values()))
+    maxv = {c: max([v.get(c, 0) for v in by_cat.values()] or [1]) or 1 for c in curs}
+    top_flights = sorted(by_flight.items(), key=lambda kv: -sum(kv[1].values()))[:8]
+    return render_template("expenses.html", rows=rows, curs=curs, cur_tot=cur_tot, cat_rows=cat_rows, maxv=maxv,
+                           by_ac=sorted(by_ac.items()), top_flights=top_flights, unpaid=unpaid.get("x", {}), rebill=rebill.get("x", {}),
+                           fleet=q("SELECT * FROM aircraft ORDER BY reg"), flights_list=expense_flights(), filters=request.args)
+
+
+def validate_expense(form):
+    errors = []
+    flight = None
+    if form.get("flight_id"):
+        flight = next((f for f in expense_flights() if str(f["id"]) == str(form.get("flight_id"))), None)
+        if not flight:
+            flight = flight_query(" AND f.id=?", (form.get("flight_id"),))
+            flight = flight[0] if flight and is_staff() else None
+        if not flight:
+            return None, ["Bu uçuşa masraf giremezsiniz; listeden bir uçuş seçin."]
+    aircraft_id = flight["aircraft_id"] if flight else form.get("aircraft_id")
+    if not flight and not q("SELECT id FROM aircraft WHERE id=?", (aircraft_id or 0,), one=True):
+        errors.append("Uçuş ya da uçak seçin.")
+    if g.user["role"] == "pilot" and not flight:
+        errors.append("Pilotlar masrafı kendi uçuşlarından birine bağlamalıdır.")
+    cat = form.get("category")
+    if cat not in EXPENSE_CATS:
+        errors.append("Masraf türü seçin.")
+    amount = parse_amount(form.get("amount"))
+    if amount is None or amount <= 0:
+        errors.append("Tutarı doğru girin.")
+    cur = form.get("currency")
+    if cur not in CURRENCIES:
+        errors.append("Para birimi seçin.")
+    qty_raw = form.get("quantity", "").strip()
+    qty = parse_amount(qty_raw) if qty_raw else None
+    if qty_raw and (qty is None or qty < 0):
+        errors.append("Miktarı doğru girin.")
+    try:
+        edate = date.fromisoformat(form.get("expense_date") or (flight["flight_date"] if flight else now_local().date().isoformat()))
+    except ValueError:
+        edate = None
+        errors.append("Tarih seçin.")
+    status = form.get("payment_status") if form.get("payment_status") in PAY_STATUS else "odenecek"
+    data = dict(flight_id=flight["id"] if flight else None, aircraft_id=int(aircraft_id) if aircraft_id else None, category=cat,
+                expense_date=edate.isoformat() if edate else "", description=form.get("description", "").strip(), vendor=form.get("vendor", "").strip(),
+                location=form.get("location", "").strip(), quantity=qty, unit=form.get("unit") if form.get("unit") in UNITS else "",
+                amount=amount, currency=cur, payment_method=form.get("payment_method") if form.get("payment_method") in PAY_METHODS else "",
+                payment_status=status, invoice_no=form.get("invoice_no", "").strip(), note=form.get("note", "").strip())
+    return data, errors
+
+
+EXP_COLS = ["flight_id", "aircraft_id", "category", "expense_date", "description", "vendor", "location", "quantity", "unit", "amount",
+            "currency", "payment_method", "payment_status", "invoice_no", "note"]
+
+
+def expense_form(e, mode):
+    return render_template("expense_form.html", e=e, mode=mode, flights_list=expense_flights(), fleet=q("SELECT * FROM aircraft WHERE active=1 ORDER BY reg"))
+
+
+@app.route("/expenses/new", methods=["GET", "POST"])
+@login_required()
+def expense_new():
+    if request.method == "POST":
+        data, errors = validate_expense(request.form)
+        if errors:
+            for e in errors:
+                flash(e, "error")
+            return expense_form(request.form, "new")
+        eid = ex(f"INSERT INTO expenses({','.join(EXP_COLS)},created_by,created_at) VALUES ({','.join('?' * (len(EXP_COLS) + 2))})",
+                 [data[c] for c in EXP_COLS] + [g.user["id"], now_local().isoformat(" ", "minutes")])
+        log("masraf ekledi", f"#{eid} {data['category']} {data['amount']} {data['currency']}")
+        flash("Masraf kaydedildi.", "ok")
+        if request.form.get("again"):
+            return redirect(url_for("expense_new", flight=data["flight_id"] or ""))
+        return redirect(url_for("flight_detail", fid=data["flight_id"]) if data["flight_id"] else url_for("expenses"))
+    pre = {"flight_id": request.args.get("flight", ""), "currency": "EUR", "payment_status": "odenecek"}
+    if pre["flight_id"]:
+        f = next((x for x in expense_flights() if str(x["id"]) == pre["flight_id"]), None)
+        if f:
+            pre["expense_date"] = f["flight_date"]
+            pre["currency"] = "TRY" if f["arr"].endswith(("(LTFM)", "(LTFJ)", "(LTBA)", "(LTBW)", "(LTAC)", "(LTBJ)", "(LTAI)", "(LTBS)", "(LTFE)", "(LTCG)", "(LTFO)", "(LTAJ)")) else "EUR"
+    return expense_form(pre, "new")
+
+
+def get_expense_or_404(eid):
+    ps, pa = pilot_scope()
+    rows = expense_query(" AND e.id=?" + ps, [eid] + pa)
+    if not rows:
+        abort(404)
+    return rows[0]
+
+
+@app.route("/expenses/<int:eid>/edit", methods=["GET", "POST"])
+@login_required()
+def expense_edit(eid):
+    e = get_expense_or_404(eid)
+    if not can_edit_expense(e):
+        abort(403)
+    if request.method == "POST":
+        data, errors = validate_expense(request.form)
+        if errors:
+            for m in errors:
+                flash(m, "error")
+            return expense_form(dict(request.form, id=eid), "edit")
+        ex(f"UPDATE expenses SET {', '.join(c + '=?' for c in EXP_COLS)} WHERE id=?", [data[c] for c in EXP_COLS] + [eid])
+        log("masrafı düzenledi", f"#{eid}")
+        flash("Masraf güncellendi.", "ok")
+        return redirect(request.args.get("back") or url_for("expenses"))
+    return expense_form(e, "edit")
+
+
+@app.route("/expenses/<int:eid>/delete", methods=["POST"])
+@login_required()
+def expense_delete(eid):
+    e = get_expense_or_404(eid)
+    if not can_edit_expense(e):
+        abort(403)
+    ex("DELETE FROM expenses WHERE id=?", (eid,))
+    log("masrafı sildi", f"#{eid}")
+    flash("Masraf silindi.", "ok")
+    back = request.form.get("back", "")
+    return redirect(back if back.startswith("/") and not back.startswith("//") else url_for("expenses"))
+
+
+@app.route("/expenses.csv")
+@login_required(*STAFF)
+def expenses_csv():
+    extra, args = expense_filters()
+    out = io.StringIO()
+    w = csv.writer(out, delimiter=";")
+    w.writerow(["No", "Tarih", "Uçuş kodu", "Uçuş tarihi", "Rota", "Uçak", "Tür", "Açıklama", "Tedarikçi", "Yer", "Miktar", "Birim",
+                "Tutar", "Para birimi", "Ödeme yolu", "Ödeme durumu", "Fatura no", "Not", "Giren"])
+    for e in expense_query(extra + " ORDER BY e.expense_date, e.id", args):
+        w.writerow([e["id"], e["expense_date"], e["flight_code"] or "", e["flight_date"] or "",
+                    f"{short_ap(e['dep'])}–{short_ap(e['arr'])}" if e["dep"] else "", e["reg"], EXPENSE_CATS.get(e["category"], e["category"]),
+                    e["description"], e["vendor"], e["location"], "" if e["quantity"] is None else str(e["quantity"]).replace(".", ","),
+                    UNITS.get(e["unit"], e["unit"]) if e["unit"] else "", f"{float(e['amount']):.2f}".replace(".", ","), e["currency"],
+                    PAY_METHODS.get(e["payment_method"], ""), PAY_STATUS.get(e["payment_status"], ""), e["invoice_no"], e["note"], e["creator"] or ""])
+    return Response("﻿" + out.getvalue(), mimetype="text/csv",
+                    headers={"Content-Disposition": f"attachment; filename=ucus_masraflari_{now_local():%Y_%m_%d}.csv"})
 
 
 # ---------------------------------------------------------------- kullanıcılar (yönetici)
@@ -1084,6 +1347,15 @@ TEMPLATES["flight_detail.html"] = r"""{% extends "base.html" %}{% block body %}
 {% if decider %}<dt>Karar</dt><dd>{{ decider.full_name }} · {{ f.decided_at }}{% if f.decision_note %}<span class="sub">{{ f.decision_note }}</span>{% endif %}</dd>{% endif %}
 </dl></div>
 <div class="row" style="margin-top:16px">{% if can_edit %}<a class="btn ghost" href="{{ url_for('flight_edit', fid=f.id) }}">Düzenle</a>{% endif %}<a href="{{ url_for('flights') }}">Listeye dön</a></div>
+<div class="page-head" style="margin:36px 0 14px"><div><div class="eyebrow">Maliyet</div><h2 style="margin:6px 0 0">Uçuş masrafları</h2></div>
+{% if not f.cancelled %}<a class="btn" href="{{ url_for('expense_new', flight=f.id) }}">+ Masraf ekle</a>{% endif %}</div>
+{% if exps %}<div class="tbl"><table><tr><th>Tür</th><th>Açıklama</th><th class="hide-m">Tedarikçi / yer</th><th class="hide-m">Miktar</th><th style="text-align:right">Tutar</th><th class="hide-m">Durum</th><th></th></tr>
+{% for e in exps %}<tr><td>{{ T(EXPENSE_CATS.get(e.category, e.category)) }}</td><td>{{ e.description or '—' }}{% if e.invoice_no %}<span class="sub">{{ e.invoice_no }}</span>{% endif %}</td>
+<td class="hide-m">{{ e.vendor or '—' }}<span class="sub">{{ e.location }}</span></td><td class="hide-m">{{ qty_text(e) }}</td>
+<td style="text-align:right;white-space:nowrap;color:#fff">{{ money(e.amount, e.currency) }}</td><td class="hide-m"><span class="st {{ PAY_TONE[e.payment_status] }}">{{ T(PAY_STATUS[e.payment_status]) }}</span></td>
+<td>{% if can_edit_expense(e) %}<a href="{{ url_for('expense_edit', eid=e.id, back=request.path) }}">Düzenle</a>{% endif %}</td></tr>{% endfor %}
+<tr><td colspan="4" style="color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-size:11px">Toplam</td><td style="text-align:right;color:#fff;font-weight:600">{% for c, v in exp_tot.items() %}<div>{{ money(v, c) }}</div>{% endfor %}</td><td colspan="2" class="hide-m"></td></tr>
+</table></div>{% else %}<p class="muted">Bu uçuş için masraf girilmemiş.</p>{% endif %}
 {% if g.user.role!='pilot' and not f.cancelled %}<h2>Koordinatör işlemi</h2><form method="post" action="{{ url_for('flight_decide', fid=f.id) }}" class="sheet">
 <input type="hidden" name="csrf" value="{{ csrf_token() }}"><label>Açıklama (isteğe bağlı)<input name="decision_note"></label><br><div class="row">
 {% if f.approval=='pending' %}<button class="btn" name="action" value="approve">Onayla</button><button class="btn danger" name="action" value="reject">Reddet</button>{% endif %}
@@ -1161,11 +1433,80 @@ TEMPLATES["users.html"] = r"""{% extends "base.html" %}{% block body %}<div clas
 TEMPLATES["audit.html"] = r"""{% extends "base.html" %}{% block body %}<h1>İşlem geçmişi</h1><div class="tbl"><table><tr><th>Zaman</th><th>Kullanıcı</th><th>İşlem</th><th>Ayrıntı</th></tr>
 {% for r in rows %}<tr><td>{{ r.at }}</td><td>{{ r.full_name or '—' }}</td><td>{{ r.action }}</td><td>{{ r.detail }}</td></tr>{% endfor %}</table></div>{% endblock %}"""
 
+TEMPLATES["expenses.html"] = r"""{% extends "base.html" %}{% block head %}<style>
+.exp-figs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin:6px 0 26px}
+.exp-figs .sheet{padding:18px 20px}.exp-figs b{display:block;font:600 26px/1.2 var(--serif);color:#fff;margin-top:6px;white-space:nowrap}
+.exp-figs .sub{margin-top:4px}
+.exp-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;margin-bottom:26px}
+.bar{height:6px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:rgba(255,255,255,.75);border-radius:3px}
+.num{text-align:right;white-space:nowrap;color:#fff;font-variant-numeric:tabular-nums}
+@media (max-width:900px){.exp-grid{grid-template-columns:1fr}}
+</style>{% endblock %}{% block body %}
+<div class="page-head"><div><div class="eyebrow">Maliyet</div><h1>Uçuş masrafları</h1>
+<p class="muted" style="margin:0">Yakıt, konaklama, park, handling ve diğer özel jet uçuş maliyetleri. Toplamlar para birimine göre ayrı tutulur.</p></div>
+<div class="row">{% if g.user.role!='pilot' %}<a class="btn ghost" href="{{ url_for('expenses_csv', **filters) }}">Excel'e aktar (CSV)</a>{% endif %}<a class="btn" href="{{ url_for('expense_new') }}">+ Masraf ekle</a></div></div>
+<form class="grid sheet" method="get" style="margin-bottom:22px">
+<label>Başlangıç<input type="date" name="from" value="{{ filters.get('from','') }}"></label><label>Bitiş<input type="date" name="to" value="{{ filters.get('to','') }}"></label>
+<label>Uçak<select name="ac"><option value="">Tümü</option>{% for a in fleet %}<option value="{{ a.id }}" {{ 'selected' if filters.get('ac')==a.id|string }}>{{ a.reg }}</option>{% endfor %}</select></label>
+<label>Uçuş<select name="flight"><option value="">Tümü</option>{% for f in flights_list %}<option value="{{ f.id }}" {{ 'selected' if filters.get('flight')==f.id|string }}>{{ f.code }} · {{ f.flight_date }} · {{ short_ap(f.dep) }}–{{ short_ap(f.arr) }}</option>{% endfor %}</select></label>
+<label>Masraf türü<select name="cat"><option value="">Tümü</option>{% for k, v in EXPENSE_CATS.items() %}<option value="{{ k }}" {{ 'selected' if filters.get('cat')==k }}>{{ T(v) }}</option>{% endfor %}</select></label>
+<label>Ödeme durumu<select name="status"><option value="">Tümü</option>{% for k, v in PAY_STATUS.items() %}<option value="{{ k }}" {{ 'selected' if filters.get('status')==k }}>{{ T(v) }}</option>{% endfor %}</select></label>
+<label>Para birimi<select name="cur"><option value="">Tümü</option>{% for c in CURRENCIES %}<option {{ 'selected' if filters.get('cur')==c }}>{{ c }}</option>{% endfor %}</select></label>
+<div style="align-self:end" class="row"><button class="btn">Filtrele</button><a href="{{ url_for('expenses') }}">Temizle</a></div></form>
+{% if rows %}
+<div class="exp-figs">{% for c in curs %}<div class="sheet"><div class="eyebrow">Toplam · {{ c }}</div><b>{{ money(cur_tot[c], c) }}</b>
+<span class="sub">{% if unpaid.get(c) %}Ödenecek {{ money(unpaid[c], c) }}{% endif %}{% if unpaid.get(c) and rebill.get(c) %} · {% endif %}{% if rebill.get(c) %}Yansıtılacak {{ money(rebill[c], c) }}{% endif %}</span></div>{% endfor %}</div>
+<div class="exp-grid">
+<div class="sheet"><div class="eyebrow">Masraf türüne göre</div><table style="margin-top:8px">{% for cat, vals in cat_rows %}<tr><td style="width:44%">{{ T(EXPENSE_CATS.get(cat, cat)) }}</td>
+<td>{% for c in curs %}{% if vals.get(c) %}<div class="row" style="justify-content:space-between;gap:8px"><span class="sub" style="margin:0">{{ c }}</span><span class="num">{{ money(vals[c], c) }}</span></div><div class="bar"><i style="width:{{ (vals[c] / maxv[c] * 100)|round(1) }}%"></i></div>{% endif %}{% endfor %}</td></tr>{% endfor %}</table></div>
+<div style="display:grid;gap:18px;align-content:start">
+<div class="sheet"><div class="eyebrow">Uçağa göre</div><table style="margin-top:8px">{% for reg, vals in by_ac %}<tr><td>{{ reg }}</td><td class="num">{% for c, v in vals.items() %}<div>{{ money(v, c) }}</div>{% endfor %}</td></tr>{% endfor %}</table></div>
+<div class="sheet"><div class="eyebrow">En maliyetli uçuşlar</div><table style="margin-top:8px">{% for key, vals in top_flights %}<tr><td><a href="{{ url_for('flight_detail', fid=key[0]) }}">{{ key[1] }}</a><span class="sub">{{ key[2] }} · {{ key[3] }} · {{ short_ap(key[4]) }}–{{ short_ap(key[5]) }}</span></td><td class="num">{% for c, v in vals.items() %}<div>{{ money(v, c) }}</div>{% endfor %}</td></tr>{% endfor %}</table></div>
+</div></div>
+<h2>Kayıtlar</h2><div class="tbl"><table><tr><th>Tarih</th><th>Uçuş</th><th>Tür</th><th class="hide-m">Açıklama</th><th class="hide-m">Tedarikçi / yer</th><th class="hide-m">Miktar</th><th style="text-align:right">Tutar</th><th class="hide-m">Durum</th><th></th></tr>
+{% for e in rows %}<tr><td style="white-space:nowrap">{{ e.expense_date }}</td><td>{% if e.flight_id %}<a href="{{ url_for('flight_detail', fid=e.flight_id) }}">{{ e.flight_code }}</a><span class="sub">{{ e.reg }} · {{ short_ap(e.dep) }}–{{ short_ap(e.arr) }}</span>{% else %}{{ e.reg }}<span class="sub">Uçuşa bağlı değil</span>{% endif %}</td>
+<td>{{ T(EXPENSE_CATS.get(e.category, e.category)) }}</td><td class="hide-m">{{ e.description or '—' }}{% if e.invoice_no %}<span class="sub">{{ e.invoice_no }}</span>{% endif %}</td>
+<td class="hide-m">{{ e.vendor or '—' }}<span class="sub">{{ e.location }}</span></td><td class="hide-m">{{ qty_text(e) }}</td><td class="num">{{ money(e.amount, e.currency) }}</td>
+<td class="hide-m"><span class="st {{ PAY_TONE[e.payment_status] }}">{{ T(PAY_STATUS[e.payment_status]) }}</span></td>
+<td>{% if can_edit_expense(e) %}<a href="{{ url_for('expense_edit', eid=e.id) }}">Düzenle</a>{% endif %}</td></tr>{% endfor %}</table></div>
+{% else %}<div class="sheet"><p class="muted" style="margin:0">Bu filtrelere uyan masraf kaydı yok.</p></div>{% endif %}{% endblock %}"""
+
+TEMPLATES["expense_form.html"] = r"""{% extends "base.html" %}{% block body %}
+<div class="eyebrow">Maliyet</div><h1>{{ 'Yeni masraf' if mode=='new' else 'Masrafı düzenle' }}</h1>
+<p class="muted">Masrafı bir uçuşa bağlayın; uçak uçuştan otomatik alınır. Uçuşa bağlı olmayan masraflar (aylık hangar gibi) için uçuşu boş bırakıp uçağı seçin. Tutarda virgül ya da nokta kullanabilirsiniz.</p>
+<form method="post" class="grid sheet"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+<label class="full">Uçuş<select name="flight_id" id="flight_id"><option value="">Uçuşa bağlı değil</option>{% for f in flights_list %}<option value="{{ f.id }}" data-date="{{ f.flight_date }}" {{ 'selected' if e and e.flight_id|string==f.id|string }}>{{ f.code }} · {{ f.flight_date }} · {{ f.reg }} · {{ short_ap(f.dep) }} → {{ short_ap(f.arr) }}</option>{% endfor %}</select></label>
+{% if g.user.role!='pilot' %}<label>Uçak (uçuş yoksa)<select name="aircraft_id"><option value="">Seçin</option>{% for a in fleet %}<option value="{{ a.id }}" {{ 'selected' if e and e.aircraft_id|string==a.id|string }}>{{ a.reg }} · {{ a.type }}</option>{% endfor %}</select></label>{% endif %}
+<label>Masraf türü<select name="category" id="category" required>{% for k, v in EXPENSE_CATS.items() %}<option value="{{ k }}" {{ 'selected' if e and e.category==k }}>{{ T(v) }}</option>{% endfor %}</select></label>
+<label>Tarih<input type="date" name="expense_date" id="expense_date" value="{{ e.expense_date if e and e.expense_date else '' }}"></label>
+<label>Tutar<input name="amount" inputmode="decimal" placeholder="0,00" value="{{ e.amount if e and e.amount is not none else '' }}" required></label>
+<label>Para birimi<select name="currency">{% for c in CURRENCIES %}<option {{ 'selected' if e and e.currency==c }}>{{ c }}</option>{% endfor %}</select></label>
+<label>Miktar<input name="quantity" inputmode="decimal" value="{{ e.quantity if e and e.quantity is not none else '' }}"></label>
+<label>Birim<select name="unit" id="unit">{% for k, v in UNITS.items() %}<option value="{{ k }}" {{ 'selected' if e and e.unit==k }}>{{ T(v) }}</option>{% endfor %}</select></label>
+<label>Açıklama<input name="description" value="{{ e.description if e and e.description else '' }}" placeholder="Jet A-1 ikmali, 2 oda 1 gece"></label>
+<label>Tedarikçi<input name="vendor" value="{{ e.vendor if e and e.vendor else '' }}" placeholder="FBO, otel, yakıt şirketi"></label>
+<label>Yer / meydan<input name="location" list="aps" value="{{ e.location if e and e.location else '' }}"></label>
+<label>Fatura / fiş no<input name="invoice_no" value="{{ e.invoice_no if e and e.invoice_no else '' }}"></label>
+<label>Ödeme yolu<select name="payment_method">{% for k, v in PAY_METHODS.items() %}<option value="{{ k }}" {{ 'selected' if e and e.payment_method==k }}>{{ T(v) }}</option>{% endfor %}</select></label>
+<label>Ödeme durumu<select name="payment_status">{% for k, v in PAY_STATUS.items() %}<option value="{{ k }}" {{ 'selected' if e and e.payment_status==k }}>{{ T(v) }}</option>{% endfor %}</select></label>
+<label class="full">Not<textarea name="note">{{ e.note if e and e.note else '' }}</textarea></label>
+<div class="full row"><button class="btn">Kaydet</button>{% if mode=='new' %}<button class="btn ghost" name="again" value="1">Kaydet ve yeni ekle</button>{% endif %}<a href="{{ request.args.get('back') or url_for('expenses') }}">Vazgeç</a></div>
+<datalist id="aps">{% for ap in AIRPORTS %}<option value="{{ ap }}">{% endfor %}</datalist></form>
+{% if mode=='edit' %}<form method="post" action="{{ url_for('expense_delete', eid=e.id) }}" style="margin-top:14px"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="back" value="{{ request.args.get('back','') }}"><button class="btn danger small">Masrafı sil</button></form>{% endif %}
+<script>
+(function(){ var CAT_UNIT = {{ CAT_UNIT|tojson }};
+  var fl=document.getElementById('flight_id'), dt=document.getElementById('expense_date'), cat=document.getElementById('category'), un=document.getElementById('unit');
+  fl.addEventListener('change',function(){ var o=fl.options[fl.selectedIndex]; if(o && o.dataset.date && !dt.value) dt.value=o.dataset.date; });
+  if(!dt.value){ var o=fl.options[fl.selectedIndex]; if(o && o.dataset.date) dt.value=o.dataset.date; }
+  cat.addEventListener('change',function(){ if(CAT_UNIT[cat.value]) un.value=CAT_UNIT[cat.value]; });
+})();
+</script>{% endblock %}"""
+
 TEMPLATES["error.html"] = r"""{% extends "base.html" %}{% block body %}<div class="sheet" style="max-width:520px"><h1>{{ code }}</h1><p>{{ msg }}</p><a href="{{ url_for('dashboard') }}">Genel bakışa dön</a></div>{% endblock %}"""
 
 # Değişken metinler (durum, uyarı, süre, ay/gün adları) çalışma anında T() ile çevrilir
 _DYN = {
-    "base.html": [('{{ m }}', '{{ T(m) }}'), ('{{ ROLES[g.user.role] }}', '{{ T(ROLES[g.user.role]) }}'), ('<html lang="tr">', '<html lang="{{ LANG }}">'),
+    "base.html": [('{{ m }}', '{{ T(m) }}'), ("class=\"{{ 'on' if ep=='maintenance' }}\">Bakım</a>", "class=\"{{ 'on' if ep=='maintenance' }}\">Bakım</a><a href=\"{{ url_for('expenses') }}\" class=\"{{ 'on' if ep in ('expenses','expense_new','expense_edit') }}\">Masraflar</a>"), ('{{ ROLES[g.user.role] }}', '{{ T(ROLES[g.user.role]) }}'), ('<html lang="tr">', '<html lang="{{ LANG }}">'),
                   ('<form method="post" action="{{ url_for(\'logout\') }}">', '<a class="lang" href="{{ lang_url() }}" title="Türkçe / English">{{ "EN" if LANG == "tr" else "TR" }}</a><form method="post" action="{{ url_for(\'logout\') }}">'),
                   ('.who button:hover{', '.lang{border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-size:12px;letter-spacing:.12em;color:#fff;background:rgba(255,255,255,.05)}.lang:hover{background:rgba(255,255,255,.1);color:#fff}.who button:hover{')],
     "login.html": [],   # giriş şablonu T() çağrılarını kendisi içerir
@@ -1226,6 +1567,21 @@ def lang_url():
 
 
 app.jinja_env.globals.update(T=T, lang_url=lang_url)
+
+
+def qty_text(e):
+    if e["quantity"] is None or e["quantity"] == "":
+        return "—"
+    v = float(e["quantity"])
+    num = (f"{v:,.0f}" if v == int(v) else f"{v:,.2f}")
+    if current_lang() == "tr":
+        num = num.replace(",", "_").replace(".", ",").replace("_", ".")
+    return f"{num} {T(UNITS.get(e['unit'], e['unit']))}".strip() if e["unit"] else num
+
+
+app.jinja_env.globals.update(money=money, qty_text=qty_text, can_edit_expense=can_edit_expense, EXPENSE_CATS=EXPENSE_CATS,
+                             CURRENCIES=CURRENCIES, UNITS=UNITS, PAY_METHODS=PAY_METHODS, PAY_STATUS=PAY_STATUS, CAT_UNIT=CAT_UNIT,
+                             PAY_TONE={"odenecek": "warn", "odendi": "ok", "yansitilacak": "busy"})
 
 
 @app.context_processor

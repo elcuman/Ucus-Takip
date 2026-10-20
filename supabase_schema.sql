@@ -23,3 +23,9 @@ CREATE TABLE IF NOT EXISTS day_codes (
   PRIMARY KEY (aircraft_id, day));
 CREATE TABLE IF NOT EXISTS audit (
   id SERIAL PRIMARY KEY, user_id INTEGER, action TEXT NOT NULL, detail TEXT DEFAULT '', at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS expenses (
+  id SERIAL PRIMARY KEY, flight_id INTEGER REFERENCES flights(id) ON DELETE SET NULL, aircraft_id INTEGER NOT NULL REFERENCES aircraft(id),
+  category TEXT NOT NULL, expense_date TEXT NOT NULL, description TEXT DEFAULT '', vendor TEXT DEFAULT '', location TEXT DEFAULT '',
+  quantity NUMERIC(14,2), unit TEXT DEFAULT '', amount NUMERIC(14,2) NOT NULL CHECK (amount > 0), currency TEXT NOT NULL DEFAULT 'EUR',
+  payment_method TEXT DEFAULT '', payment_status TEXT NOT NULL DEFAULT 'odenecek', invoice_no TEXT DEFAULT '', note TEXT DEFAULT '',
+  created_by INTEGER REFERENCES users(id), created_at TEXT NOT NULL);
