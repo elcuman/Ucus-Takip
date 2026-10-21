@@ -11,7 +11,7 @@ EN = {
     # menü ve genel
     "Genel Bakış": "Overview", "Uçuşlar": "Flights", "Uçuşlarım": "My flights", "Uçuş kaydı": "Flight log",
     "Onaylar": "Approvals", "Filo": "Fleet", "Bakım": "Maintenance", "Kullanıcılar": "Users", "Geçmiş": "History",
-    "Çıkış": "Sign out", "Private Aviation": "Private Aviation", "Uçuş Kayıt ve Takip": "Flight Log & Tracking", "Canlı uçuş": "Live flight", "Tahmini iniş": "ETA", "Sıradaki kalkış": "Next departure", "Sivil Havacılık": "Civil Aviation", "Giriş": "Sign in",
+    "Çıkış": "Sign out", "Private Aviation": "Private Aviation", "Uçuş Kayıt ve Takip": "Flight Log & Tracking", "Canlı uçuş": "Live flight", "Açık": "Light", "Koyu": "Dark", "Ana menü": "Main menu", "Tema": "Theme", "Dil": "Language", "Tahmini iniş": "ETA", "Sıradaki kalkış": "Next departure", "Sivil Havacılık": "Civil Aviation", "Giriş": "Sign in",
     "Pilot": "Pilot", "Koordinatör": "Coordinator", "Yönetici": "Administrator",
     # giriş
     "Gökyüzünde": "A", "zamansız": "timeless", "bir ayrıcalık.": "privilege in the skies.",
@@ -143,6 +143,8 @@ EN = {
     # aylar / günler
     "Ocak": "January", "Şubat": "February", "Mart": "March", "Nisan": "April", "Mayıs": "May", "Haziran": "June", "Temmuz": "July",
     "Ağustos": "August", "Eylül": "September", "Ekim": "October", "Kasım": "November", "Aralık": "December",
+    "Oca": "Jan", "Şub": "Feb", "Mar": "Mar", "Nis": "Apr", "May": "May", "Haz": "Jun", "Tem": "Jul", "Ağu": "Aug", "Eyl": "Sep", "Eki": "Oct", "Kas": "Nov", "Ara": "Dec",
+    "yolcu": "pax", "Pilot atanmadı": "No pilot assigned", "Anlık durum": "Live status",
     "Pzt": "Mon", "Sal": "Tue", "Çar": "Wed", "Per": "Thu", "Cum": "Fri", "Cmt": "Sat", "Paz": "Sun",
 }
 MON = {"Oca": "Jan", "Şub": "Feb", "Mar": "Mar", "Nis": "Apr", "May": "May", "Haz": "Jun", "Tem": "Jul", "Ağu": "Aug",
