@@ -1309,7 +1309,7 @@ header.top{position:sticky;top:0;z-index:40;padding:0 40px}
 .brand{display:flex;align-items:center;gap:12px;color:#fff;flex:none}.brand:hover{text-decoration:none}
 .brand .mark{height:40px;width:auto;flex:none;filter:brightness(1.25) saturate(1.1)}
 .newfl{flex:none;padding:7px 12px;border-radius:6px;background:#fff;color:var(--night);font:700 13px var(--sans);white-space:nowrap}.newfl:hover{text-decoration:none;opacity:.9}
-.brand b{display:block;font-size:15px;font-weight:750;font-stretch:112%;line-height:1.2;color:#fff;max-width:200px}.brand small{display:block;font-size:12px;color:rgba(255,255,255,.65);font-weight:500}
+.brand b{display:block;font-size:15px;font-weight:750;font-stretch:112%;line-height:1.2;color:#fff;white-space:nowrap}.brand small{display:block;font-size:12px;color:rgba(255,255,255,.65);font-weight:500}
 nav.main{display:flex;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none}nav.main::-webkit-scrollbar{display:none}
 nav.main a{flex:none;padding:8px 14px;border-radius:999px;color:rgba(255,255,255,.76);font-size:14.5px;font-weight:550;white-space:nowrap;transition:background-color .15s ease,color .15s ease}
 nav.main a:hover{background:rgba(255,255,255,.12);color:#fff;text-decoration:none}nav.main a.on{background:#fff;color:var(--night);font-weight:700}
@@ -1352,9 +1352,9 @@ dl.kv{display:grid;grid-template-columns:190px 1fr;gap:10px 20px;margin:0}dl.kv 
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
 details summary{cursor:pointer;font-weight:600;color:var(--ivory)}
 .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
-@media (max-width:1380px) and (min-width:901px){.top-in{flex-wrap:wrap;row-gap:0;padding:12px 0 0}nav.main{order:3;flex:1 1 100%;margin:10px -14px 0;padding:0 0 10px}}
-@media (max-width:1700px){.who{display:none}}
-@media (max-width:1180px) and (min-width:901px){.brand b{max-width:170px}}
+/* Masaüstünde iki satır: üstte logo ve araçlar, altta menü — menü ne kadar uzarsa uzasın araçlarla çakışmaz */
+@media (min-width:901px){.top-in{flex-wrap:wrap;row-gap:0;padding:12px 0 0}nav.main{order:3;flex:1 1 100%;margin:10px -14px 0;padding:0 0 10px}}
+@media (max-width:1100px){.who{display:none}}
 @media (max-width:900px){header.top{padding:0 14px}.top-in{gap:10px;padding:10px 0}.brand .mark{height:32px}.newfl{padding:5px 10px;font-size:15px}.newfl span{display:none}.brand b{font-size:13px}.brand small{display:none}
 nav.main{position:fixed;left:0;right:0;bottom:0;z-index:60;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:var(--night);box-shadow:0 -4px 16px rgba(0,0,0,.25)}
 nav.main a{padding:10px 14px;font-size:14px}body.app{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
